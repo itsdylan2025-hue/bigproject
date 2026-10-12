@@ -20,7 +20,10 @@ public final class ChunkFinderConfig {
 	public int sensitivity = 5;
 	/** Scan radius in chunks around you (the client can only scan chunks the server sent). */
 	public int simulationDistance = 8;
+	/** Colour for amethyst geodes. */
 	public String color = "#F050F8";
+	/** Colour for every other flagged chunk. */
+	public String otherColor = "#FF0000";
 	public float fillAlpha = 0.30f;
 	public float edgeAlpha = 0.90f;
 	public float wallAlpha = 0.40f;
@@ -32,8 +35,10 @@ public final class ChunkFinderConfig {
 	public int chunksPerTick = 2;
 	public int rescanSeconds = 15;
 
-	private transient String cachedColor;
-	private transient float[] cachedRgb;
+	private transient String cachedGeodeHex;
+	private transient float[] cachedGeodeRgb;
+	private transient String cachedOtherHex;
+	private transient float[] cachedOtherRgb;
 
 	public static ChunkFinderConfig get() {
 		return instance;
@@ -79,26 +84,41 @@ public final class ChunkFinderConfig {
 		if (color == null) {
 			color = "#F050F8";
 		}
+		if (otherColor == null) {
+			otherColor = "#FF0000";
+		}
 	}
 
-	/** Highlight colour as 0-1 floats (r, g, b). Falls back to #F050F8 if the hex is invalid. */
-	public float[] rgb() {
-		if (cachedRgb != null && color.equals(cachedColor)) {
-			return cachedRgb;
+	/** Geode colour as 0-1 floats (r, g, b). Falls back to #F050F8 if the hex is invalid. */
+	public float[] geodeRgb() {
+		if (cachedGeodeRgb == null || !color.equals(cachedGeodeHex)) {
+			cachedGeodeHex = color;
+			cachedGeodeRgb = parseHex(color, 0xF050F8);
 		}
-		String hex = color.trim();
+		return cachedGeodeRgb;
+	}
+
+	/** Colour for non-geode chunks. Falls back to red if the hex is invalid. */
+	public float[] otherRgb() {
+		if (cachedOtherRgb == null || !otherColor.equals(cachedOtherHex)) {
+			cachedOtherHex = otherColor;
+			cachedOtherRgb = parseHex(otherColor, 0xFF0000);
+		}
+		return cachedOtherRgb;
+	}
+
+	private static float[] parseHex(String text, int fallback) {
+		String hex = text.trim();
 		if (hex.startsWith("#")) {
 			hex = hex.substring(1);
 		}
-		int v = 0xF050F8;
+		int v = fallback;
 		try {
 			if (hex.length() == 6) {
 				v = Integer.parseInt(hex, 16);
 			}
 		} catch (NumberFormatException ignored) {
 		}
-		cachedColor = color;
-		cachedRgb = new float[] {((v >> 16) & 0xFF) / 255f, ((v >> 8) & 0xFF) / 255f, (v & 0xFF) / 255f};
-		return cachedRgb;
+		return new float[] {((v >> 16) & 0xFF) / 255f, ((v >> 8) & 0xFF) / 255f, (v & 0xFF) / 255f};
 	}
 }
