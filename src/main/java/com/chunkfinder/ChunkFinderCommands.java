@@ -24,7 +24,8 @@ public final class ChunkFinderCommands {
 					say(ctx.getSource(), (c.enabled ? "ON" : "OFF")
 							+ " | sensitivity " + c.sensitivity + "/10"
 							+ " | distance " + c.simulationDistance + " chunks"
-							+ " | colour " + c.color
+							+ " | geode colour " + c.color
+							+ " | other colour " + c.otherColor
 							+ " | through walls " + c.throughWalls
 							+ " | flagged chunks " + ActivityScanner.flaggedCount());
 					return 1;
@@ -86,7 +87,24 @@ public final class ChunkFinderCommands {
 									ChunkFinderConfig c = ChunkFinderConfig.get();
 									c.color = "#" + hex.toUpperCase();
 									c.save();
-									say(ctx.getSource(), "Colour set to " + c.color);
+									say(ctx.getSource(), "Geode colour set to " + c.color);
+									return 1;
+								})))
+				.then(ClientCommandManager.literal("othercolor")
+						.then(ClientCommandManager.argument("hex", StringArgumentType.word())
+								.executes(ctx -> {
+									String hex = StringArgumentType.getString(ctx, "hex");
+									if (hex.startsWith("#")) {
+										hex = hex.substring(1);
+									}
+									if (!hex.matches("[0-9a-fA-F]{6}")) {
+										say(ctx.getSource(), "Use a 6-digit hex colour, e.g. FF0000");
+										return 0;
+									}
+									ChunkFinderConfig c = ChunkFinderConfig.get();
+									c.otherColor = "#" + hex.toUpperCase();
+									c.save();
+									say(ctx.getSource(), "Other-chunk colour set to " + c.otherColor);
 									return 1;
 								})))
 				.then(ClientCommandManager.literal("list").executes(ctx -> {
@@ -106,4 +124,4 @@ public final class ChunkFinderCommands {
 					return 1;
 				})));
 	}
-                                                              }
+}
