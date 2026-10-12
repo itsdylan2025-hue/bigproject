@@ -32,6 +32,7 @@ import java.util.OptionalInt;
 
 /**
  * Draws a translucent sheet + glowing edges + fading walls over each flagged chunk.
+ * Geode chunks use the geode colour, every other flagged chunk uses the "other" colour.
  * Based on Fabric's official 1.21.11 "custom render pipeline" example.
  */
 public final class ChunkRenderer {
@@ -80,12 +81,14 @@ public final class ChunkRenderer {
 			RenderPipeline pipeline = cfg.throughWalls ? THROUGH_WALLS : DEPTH_TESTED;
 			Matrix4fc pose = context.matrices().last().pose();
 			Vec3 cam = context.worldState().cameraRenderState.pos;
-			float[] rgb = cfg.rgb();
+			float[] geodeRgb = cfg.geodeRgb();
+			float[] otherRgb = cfg.otherRgb();
 
 			ActivityScanner.forEachFlagged((cx, cz, result) -> {
 				if (buffer == null) {
 					buffer = new BufferBuilder(ALLOCATOR, pipeline.getVertexFormatMode(), pipeline.getVertexFormat());
 				}
+				float[] rgb = result.kind() == ActivityScanner.Kind.GEODE ? geodeRgb : otherRgb;
 				addChunk(buffer, pose, cam, cfg, rgb, cx, cz, result.y());
 			});
 
